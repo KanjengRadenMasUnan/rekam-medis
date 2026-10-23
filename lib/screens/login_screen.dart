@@ -15,7 +15,20 @@ class _LoginScreenState extends State<LoginScreen> {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Silakan masukkan nama Anda.')),
+        SnackBar(
+          content: const Row(
+            children: [
+              Icon(Icons.info_outline, color: Colors.white),
+              SizedBox(width: 12),
+              Text('Silakan isi nama atau gelar Anda.'),
+            ],
+          ),
+          backgroundColor: Colors.redAccent.shade700,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
       );
       return;
     }
@@ -28,129 +41,138 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F9FC),
+      backgroundColor: const Color(0xFF0F766E),
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(32.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Icon(
-                  Icons.medical_information,
-                  size: 80,
-                  color: Color(0xFF1976D2),
-                ),
-                const SizedBox(height: 32),
-                const Text(
-                  'Selamat Datang',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF2D3748),
+        bottom: false,
+        child: Column(
+          children: [
+            const Spacer(),
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.medical_services_outlined,
+                size: 54,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'E-MED',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
+                letterSpacing: 1.5,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Akses Cepat Pengkajian & Data Pasien',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.white.withValues(alpha: 0.85),
+              ),
+            ),
+            const Spacer(),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(28, 36, 28, 48),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 20,
+                    offset: Offset(0, -5),
                   ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Silakan masukkan nama Anda untuk masuk ke aplikasi Quick Assesment Med.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
-                ), // NAMA DIUBAH
-                const SizedBox(height: 40),
-
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Identitas Petugas',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF0F172A),
+                    ),
                   ),
-                  child: TextField(
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Masukkan nama pemeriksa untuk dicatat pada log rekam medis.',
+                    style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+                  ),
+                  const SizedBox(height: 24),
+                  TextField(
                     controller: _nameController,
                     style: const TextStyle(
-                      color: Color(0xFF2D3748),
-                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF0F172A),
+                      fontWeight: FontWeight.w600,
                     ),
-                    decoration: const InputDecoration(
-                      hintText: 'Cth: Ns. Siti Aminah',
-                      hintStyle: TextStyle(
-                        color: Colors.black38,
-                        fontWeight: FontWeight.normal,
+                    decoration: InputDecoration(
+                      hintText: 'Cth: dr. Satria / Ns. Siti Aminah',
+                      hintStyle: const TextStyle(
+                        color: Color(0xFF94A3B8),
+                        fontSize: 14,
                       ),
-                      prefixIcon: Icon(
-                        Icons.person_outline,
-                        color: Colors.grey,
+                      prefixIcon: const Icon(
+                        Icons.badge_outlined,
+                        color: Color(0xFF0F766E),
                       ),
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(vertical: 16),
+                      filled: true,
+                      fillColor: const Color(0xFFF8FAFC),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 18,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: const BorderSide(
+                          color: Color(0xFF0F766E),
+                          width: 2,
+                        ),
+                      ),
                     ),
                     onSubmitted: (_) => _login(),
                   ),
-                ),
-                const SizedBox(height: 24),
-
-                FilledButton(
-                  onPressed: _login,
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    backgroundColor: const Color(0xFF388E3C),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                  const SizedBox(height: 20),
+                  FilledButton(
+                    onPressed: _login,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFF0F766E),
+                      padding: const EdgeInsets.symmetric(vertical: 18),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 2,
                     ),
-                  ),
-                  child: const Text(
-                    'Masuk',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  children: [
-                    Expanded(child: Divider(color: Colors.grey.shade300)),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16),
-                      child: Text(
-                        'ATAU',
-                        style: TextStyle(color: Colors.grey, fontSize: 12),
+                    child: const Text(
+                      'Masuk ke Sistem',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    Expanded(child: Divider(color: Colors.grey.shade300)),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                OutlinedButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(
-                    Icons.g_mobiledata,
-                    size: 28,
-                    color: Colors.red,
                   ),
-                  label: const Text(
-                    'Masuk dengan Google',
-                    style: TextStyle(
-                      color: Color(0xFF2D3748),
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    backgroundColor: Colors.white,
-                    side: BorderSide(color: Colors.grey.shade300),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );

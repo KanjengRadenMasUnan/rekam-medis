@@ -13,23 +13,38 @@ class ScanScreen extends StatefulWidget {
   State<ScanScreen> createState() => _ScanScreenState();
 }
 
-class _ScanScreenState extends State<ScanScreen> {
+class _ScanScreenState extends State<ScanScreen>
+    with SingleTickerProviderStateMixin {
   final MobileScannerController _controller = MobileScannerController(
     detectionSpeed: DetectionSpeed.normal,
   );
   bool _isProcessing = false;
+  late AnimationController _laserController;
+  late Animation<double> _laserAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _laserController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat(reverse: true);
+
+    _laserAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _laserController, curve: Curves.easeInOut),
+    );
+  }
 
   @override
   void dispose() {
+    _laserController.dispose();
     _controller.dispose();
     super.dispose();
   }
 
   Future<void> _processCode(String code) async {
     if (_isProcessing) return;
-    setState(() {
-      _isProcessing = true;
-    });
+    setState(() => _isProcessing = true);
     await _controller.stop();
 
     if (!mounted) return;
@@ -52,27 +67,30 @@ class _ScanScreenState extends State<ScanScreen> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Data tidak ditemukan!\nID: $code'),
-            backgroundColor: Colors.redAccent,
+            content: Text('Pasien dengan ID "$code" tidak terdaftar.'),
+            backgroundColor: const Color(0xFFDC2626),
             behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
       }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error: $e'),
-            backgroundColor: Colors.redAccent,
+            backgroundColor: const Color(0xFFDC2626),
+            behavior: SnackBarBehavior.floating,
           ),
         );
+      }
     }
 
     await Future.delayed(const Duration(seconds: 2));
     if (mounted) {
-      setState(() {
-        _isProcessing = false;
-      });
+      setState(() => _isProcessing = false);
       await _controller.start();
     }
   }
@@ -85,22 +103,22 @@ class _ScanScreenState extends State<ScanScreen> {
         return AlertDialog(
           backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(24),
           ),
           title: const Text(
-            'Cari ID Manual',
-            style: TextStyle(
-              color: Color(0xFF2D3748),
-              fontWeight: FontWeight.bold,
-            ),
+            'Ketik ID Manual',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
           ),
           content: TextField(
             controller: ctrl,
             autofocus: true,
             decoration: InputDecoration(
-              hintText: 'Cth: 09102026-001-A1B',
+              hintText: 'Cth: 23102026-001-XYZ',
+              filled: true,
+              fillColor: const Color(0xFFF8FAFC),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
               ),
             ),
           ),
@@ -111,7 +129,10 @@ class _ScanScreenState extends State<ScanScreen> {
             ),
             FilledButton(
               style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFF388E3C),
+                backgroundColor: const Color(0xFF0F766E),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               onPressed: () => Navigator.pop(ctx, ctrl.text),
               child: const Text('Cari'),
@@ -125,26 +146,33 @@ class _ScanScreenState extends State<ScanScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final scanAreaWidth = MediaQuery.of(context).size.width * 0.82;
+    const scanAreaHeight = 160.0;
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.white,
         title: const Text(
-          'Scan & Assesment',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          'Pindai Barcode Pasien',
+          style: TextStyle(color: Colors.white),
         ),
         actions: [
           IconButton(
             tooltip: 'Ketik Manual',
-            icon: const Icon(Icons.keyboard_alt_outlined),
+            icon: const Icon(Icons.keyboard_outlined),
             onPressed: _openManualSearch,
           ),
           IconButton(
-            tooltip: 'Senter',
+            tooltip: 'Lampu Senter',
             icon: const Icon(Icons.flashlight_on_outlined),
             onPressed: () => _controller.toggleTorch(),
           ),
+          const SizedBox(width: 8),
         ],
       ),
+      extendBodyBehindAppBar: true,
       body: Stack(
         fit: StackFit.expand,
         children: [
@@ -152,7 +180,7 @@ class _ScanScreenState extends State<ScanScreen> {
             controller: _controller,
             errorBuilder: (context, error) => Center(
               child: Text(
-                'Gagal membuka kamera.\nError: ${error.errorCode}',
+                'Kamera tidak dapat diakses.\n${error.errorCode}',
                 textAlign: TextAlign.center,
                 style: const TextStyle(color: Colors.white),
               ),
@@ -160,44 +188,81 @@ class _ScanScreenState extends State<ScanScreen> {
             onDetect: (capture) {
               if (_isProcessing) return;
               final rawValue = capture.barcodes.firstOrNull?.rawValue;
-              if (rawValue != null && rawValue.isNotEmpty)
+              if (rawValue != null && rawValue.isNotEmpty) {
                 _processCode(rawValue);
+              }
             },
           ),
+
+          // RETICLE BORDER & LASER ANIMATION
           Center(
-            child: Container(
-              width: MediaQuery.of(context).size.width * 0.8,
-              height: 150,
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.tealAccent, width: 3),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: const Center(
-                child: Divider(color: Colors.redAccent, thickness: 2),
+            child: SizedBox(
+              width: scanAreaWidth,
+              height: scanAreaHeight,
+              child: Stack(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: const Color(0xFF14B8A6),
+                        width: 2.5,
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                  AnimatedBuilder(
+                    animation: _laserAnimation,
+                    builder: (context, child) {
+                      return Positioned(
+                        top: _laserAnimation.value * (scanAreaHeight - 4),
+                        left: 8,
+                        right: 8,
+                        child: Container(
+                          height: 3,
+                          decoration: BoxDecoration(
+                            color: Colors.redAccent,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.redAccent.withValues(alpha: 0.8),
+                                blurRadius: 10,
+                                spreadRadius: 2,
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
             ),
           ),
+
+          // INSTRUCTION PILL
           Positioned(
-            bottom: 40,
+            bottom: 48,
             left: 24,
             right: 24,
             child: Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
               decoration: BoxDecoration(
-                color: Colors.black87,
-                borderRadius: BorderRadius.circular(16),
+                color: Colors.black.withValues(alpha: 0.75),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: Colors.white24),
               ),
               child: const Text(
-                'Arahkan kamera ke barcode\nGaris merah harus memotong kode.',
+                'Arahkan kamera tepat ke barcode pasien.\nGaris merah akan mendeteksi otomatis.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 13,
-                  height: 1.5,
+                  height: 1.4,
                 ),
               ),
             ),
           ),
+
+          // LOADING OVERLAY
           if (_isProcessing)
             Container(
               color: Colors.black54,
@@ -208,8 +273,8 @@ class _ScanScreenState extends State<ScanScreen> {
                     vertical: 16,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.teal,
-                    borderRadius: BorderRadius.circular(30),
+                    color: const Color(0xFF0F766E),
+                    borderRadius: BorderRadius.circular(24),
                   ),
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
@@ -224,7 +289,7 @@ class _ScanScreenState extends State<ScanScreen> {
                       ),
                       SizedBox(width: 16),
                       Text(
-                        'Memproses Data...',
+                        'Memverifikasi Data...',
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,

@@ -46,7 +46,7 @@ extension PatientFormSlides on _PatientFormScreenState {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: DropdownButtonFormField<String>(
-        value: value,
+        initialValue: value,
         style: TextStyle(color: _textColor, fontWeight: FontWeight.w500),
         icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey.shade500),
         decoration: InputDecoration(
@@ -89,7 +89,7 @@ extension PatientFormSlides on _PatientFormScreenState {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -102,7 +102,7 @@ extension PatientFormSlides on _PatientFormScreenState {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             decoration: BoxDecoration(
-              color: colorKey.withOpacity(0.1),
+              color: colorKey.withValues(alpha: 0.1),
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(16),
               ),

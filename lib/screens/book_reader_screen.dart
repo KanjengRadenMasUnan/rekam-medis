@@ -19,7 +19,6 @@ class _BookReaderScreenState extends State<BookReaderScreen> {
   @override
   void initState() {
     super.initState();
-
     try {
       _pdfController = PdfController(
         document: widget.book.isAsset
@@ -40,6 +39,7 @@ class _BookReaderScreenState extends State<BookReaderScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF1F5F9),
       appBar: AppBar(
         title: Text(widget.book.judul, overflow: TextOverflow.ellipsis),
       ),
@@ -48,8 +48,9 @@ class _BookReaderScreenState extends State<BookReaderScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Text(
-                  'Gagal membuka PDF:\n$_error',
+                  'Gagal memuat dokumen:\n$_error',
                   textAlign: TextAlign.center,
+                  style: const TextStyle(color: Color(0xFFDC2626)),
                 ),
               ),
             )

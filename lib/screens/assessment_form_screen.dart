@@ -21,8 +21,8 @@ class AssessmentFormScreen extends StatefulWidget {
 }
 
 class _AssessmentFormScreenState extends State<AssessmentFormScreen> {
-  final Color _primaryColor = Colors.teal;
-  final Color _textColor = const Color(0xFF2D3748);
+  final Color _primaryColor = const Color(0xFF0F766E);
+  final Color _textColor = const Color(0xFF0F172A);
 
   final PageController _pageController = PageController();
   int _currentPage = 0;
@@ -57,7 +57,7 @@ class _AssessmentFormScreenState extends State<AssessmentFormScreen> {
   final TextEditingController _tbCtrl = TextEditingController();
   double _imtValue = 0.0;
   String _imtCategory = '-';
-  String _imtDesc = 'Masukkan BB dan TB untuk melihat hasil.';
+  String _imtDesc = 'Masukkan BB dan TB untuk melihat kalkulasi IMT otomatis.';
 
   int? _gcsEye, _gcsVerbal, _gcsMotorik;
   int _gcsTotal = 0;
@@ -103,13 +103,13 @@ class _AssessmentFormScreenState extends State<AssessmentFormScreen> {
         desc = 'Kekurangan berat badan tingkat ringan';
       } else if (imt >= 18.5 && imt <= 25.0) {
         category = 'Normal';
-        desc = 'Berat badan ideal';
+        desc = 'Berat badan berada dalam rentang ideal';
       } else if (imt > 25.0 && imt <= 27.0) {
         category = 'Gemuk';
         desc = 'Kelebihan berat badan tingkat ringan';
       } else {
         category = 'Gemuk';
-        desc = 'Kelebihan berat badan tingkat berat';
+        desc = 'Kelebihan berat badan tingkat berat (Obesitas)';
       }
       setState(() {
         _imtValue = imt;
@@ -120,7 +120,7 @@ class _AssessmentFormScreenState extends State<AssessmentFormScreen> {
       setState(() {
         _imtValue = 0.0;
         _imtCategory = '-';
-        _imtDesc = 'Masukkan BB dan TB untuk melihat hasil.';
+        _imtDesc = 'Masukkan BB dan TB untuk melihat kalkulasi IMT otomatis.';
       });
     }
   }
@@ -129,20 +129,21 @@ class _AssessmentFormScreenState extends State<AssessmentFormScreen> {
     if (_gcsEye != null && _gcsVerbal != null && _gcsMotorik != null) {
       int total = _gcsEye! + _gcsVerbal! + _gcsMotorik!;
       String category = '';
-      if (total >= 14)
+      if (total >= 14) {
         category = 'Composmentis';
-      else if (total >= 12)
+      } else if (total >= 12) {
         category = 'Apatis';
-      else if (total >= 10)
+      } else if (total >= 10) {
         category = 'Delirium';
-      else if (total >= 7)
+      } else if (total >= 7) {
         category = 'Somnolen';
-      else if (total >= 5)
+      } else if (total >= 5) {
         category = 'Sopor';
-      else if (total == 4)
+      } else if (total == 4) {
         category = 'Semi-Coma';
-      else if (total == 3)
+      } else if (total == 3) {
         category = 'Coma';
+      }
       setState(() {
         _gcsTotal = total;
         _gcsCategory = category;
@@ -190,8 +191,7 @@ class _AssessmentFormScreenState extends State<AssessmentFormScreen> {
     try {
       final newAssessment = Assessment(
         patientId: widget.patient.id!,
-        pemantau:
-            widget.doctorName, // Menyimpan nama dokter ke database pemantauan
+        pemantau: widget.doctorName,
         createdAt: DateTime.now(),
         data: sessionData,
       );
@@ -200,20 +200,37 @@ class _AssessmentFormScreenState extends State<AssessmentFormScreen> {
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Sesi Pemantauan Berhasil Disimpan!')),
+        SnackBar(
+          content: const Row(
+            children: [
+              Icon(Icons.check_circle_outline, color: Colors.white),
+              SizedBox(width: 10),
+              Text('Sesi pemantauan berhasil disimpan ke rekam medis!'),
+            ],
+          ),
+          backgroundColor: const Color(0xFF0F766E),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
       );
       Navigator.pop(context);
     } catch (e) {
-      if (mounted)
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Gagal: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal menyimpan: $e'),
+            backgroundColor: const Color(0xFFDC2626),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
   }
 
-  // ===================== HELPER UI WIDGETS =====================
   Widget _buildTextField(
     String label,
     TextEditingController controller, {
@@ -227,18 +244,22 @@ class _AssessmentFormScreenState extends State<AssessmentFormScreen> {
         minLines: minLines,
         maxLines: minLines > 1 ? minLines + 2 : 1,
         keyboardType: type,
-        style: TextStyle(color: _textColor, fontWeight: FontWeight.w500),
+        style: TextStyle(
+          color: _textColor,
+          fontWeight: FontWeight.w600,
+          fontSize: 14,
+        ),
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: TextStyle(color: Colors.grey.shade500, fontSize: 14),
+          labelStyle: const TextStyle(color: Color(0xFF64748B), fontSize: 13.5),
           filled: true,
-          fillColor: const Color(0xFFF8F9FA),
+          fillColor: const Color(0xFFF8FAFC),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey.shade200),
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
             borderSide: BorderSide(color: _primaryColor, width: 2),
           ),
           contentPadding: const EdgeInsets.symmetric(
@@ -259,20 +280,27 @@ class _AssessmentFormScreenState extends State<AssessmentFormScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: DropdownButtonFormField<String>(
-        value: value,
-        style: TextStyle(color: _textColor, fontWeight: FontWeight.w500),
-        icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey.shade500),
+        initialValue: value,
+        style: TextStyle(
+          color: _textColor,
+          fontWeight: FontWeight.w600,
+          fontSize: 14,
+        ),
+        icon: const Icon(
+          Icons.keyboard_arrow_down_rounded,
+          color: Color(0xFF64748B),
+        ),
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: TextStyle(color: Colors.grey.shade500, fontSize: 14),
+          labelStyle: const TextStyle(color: Color(0xFF64748B), fontSize: 13.5),
           filled: true,
-          fillColor: const Color(0xFFF8F9FA),
+          fillColor: const Color(0xFFF8FAFC),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey.shade200),
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
             borderSide: BorderSide(color: _primaryColor, width: 2),
           ),
           contentPadding: const EdgeInsets.symmetric(
@@ -295,47 +323,55 @@ class _AssessmentFormScreenState extends State<AssessmentFormScreen> {
     required Color colorKey,
   }) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 24),
+      margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
-        border: Border.all(color: Colors.grey.shade100),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
             decoration: BoxDecoration(
-              color: colorKey.withOpacity(0.1),
+              color: colorKey.withValues(alpha: 0.08),
               borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(16),
+                top: Radius.circular(20),
               ),
             ),
             child: Row(
               children: [
-                Icon(icon, color: colorKey, size: 22),
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: colorKey.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(icon, color: colorKey, size: 18),
+                ),
                 const SizedBox(width: 10),
                 Text(
                   title,
                   style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w800,
                     color: _textColor,
+                    letterSpacing: -0.2,
                   ),
                 ),
               ],
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(18),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: children,
@@ -346,146 +382,167 @@ class _AssessmentFormScreenState extends State<AssessmentFormScreen> {
     );
   }
 
-  // ===================== HALAMAN SLIDE =====================
+  // 1. PART I
   Widget _buildSlidePart1() => ListView(
-    padding: const EdgeInsets.all(24),
+    padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
     children: [
       _buildCardWrap(
-        title: 'Data Subjektif & Objektif',
-        icon: Icons.monitor_heart_outlined,
-        colorKey: const Color(0xFFD32F2F),
+        title: 'Tanda Vital & Keluhan Subjektif',
+        icon: Icons.monitor_heart_rounded,
+        colorKey: const Color(0xFFE11D48),
         children: [
           _buildTextField(
-            'Keluhan (Data Subjektif)',
+            'Keluhan Utama (Data Subjektif)',
             _subjektifCtrl,
             minLines: 3,
           ),
           Row(
             children: [
-              Expanded(child: _buildTextField('Tekanan Darah', _tdCtrl)),
+              Expanded(child: _buildTextField('Tekanan Darah (TD)', _tdCtrl)),
               const SizedBox(width: 12),
-              Expanded(child: _buildTextField('Denyut Nadi', _nadiCtrl)),
+              Expanded(
+                child: _buildTextField('Denyut Nadi (x/mnt)', _nadiCtrl),
+              ),
             ],
           ),
           Row(
             children: [
-              Expanded(child: _buildTextField('Napas', _napasCtrl)),
+              Expanded(
+                child: _buildTextField('Laju Napas (x/mnt)', _napasCtrl),
+              ),
               const SizedBox(width: 12),
               Expanded(child: _buildTextField('SPO2 (%)', _spo2Ctrl)),
             ],
           ),
-          _buildTextField('Hasil Inspeksi / Fisik', _inspeksiCtrl, minLines: 3),
+          _buildTextField(
+            'Inspeksi Fisik & Keadaan Umum',
+            _inspeksiCtrl,
+            minLines: 2,
+          ),
         ],
       ),
       _buildCardWrap(
         title: 'Riwayat Penyakit Terkini',
-        icon: Icons.history_edu,
-        colorKey: const Color(0xFFD32F2F),
+        icon: Icons.history_edu_rounded,
+        colorKey: const Color(0xFFE11D48),
         children: [
           _buildDropdown(
-            'Pernah Dirawat?',
+            'Pernah Dirawat Sebelumnya?',
             ['Ya', 'Tidak'],
             _pernahDirawat,
             (v) => setState(() => _pernahDirawat = v),
           ),
           if (_pernahDirawat == 'Ya')
-            _buildTextField('Kapan?', _kapanDirawatCtrl),
+            _buildTextField('Kapan / Di Mana?', _kapanDirawatCtrl),
           _buildDropdown(
-            'Ada Alergi?',
+            'Ada Riwayat Alergi?',
             ['Ya', 'Tidak'],
             _adaAlergi,
             (v) => setState(() => _adaAlergi = v),
           ),
           if (_adaAlergi == 'Ya')
-            _buildTextField('Alergi Apa?', _jenisAlergiCtrl),
+            _buildTextField('Jenis Alergi Obat/Makanan', _jenisAlergiCtrl),
           _buildDropdown(
-            'Riwayat Operasi?',
+            'Pernah Riwayat Operasi?',
             ['Ya', 'Tidak'],
             _adaOperasi,
             (v) => setState(() => _adaOperasi = v),
           ),
-          if (_adaOperasi == 'Ya') _buildTextField('Kapan?', _kapanOperasiCtrl),
+          if (_adaOperasi == 'Ya')
+            _buildTextField('Waktu & Jenis Operasi', _kapanOperasiCtrl),
         ],
       ),
     ],
   );
 
+  // 2. PART II (IMT)
   Widget _buildSlidePart2() => ListView(
-    padding: const EdgeInsets.all(24),
+    padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
     children: [
       _buildCardWrap(
-        title: 'Indeks Massa Tubuh',
-        icon: Icons.monitor_weight_outlined,
-        colorKey: const Color(0xFF388E3C),
+        title: 'Indeks Massa Tubuh (IMT)',
+        icon: Icons.accessibility_new_rounded,
+        colorKey: const Color(0xFF059669),
         children: [
           Row(
             children: [
               Expanded(
                 child: _buildTextField(
-                  'Berat (kg)',
+                  'Berat Badan (kg)',
                   _bbCtrl,
                   type: TextInputType.number,
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 14),
               Expanded(
                 child: _buildTextField(
-                  'Tinggi (cm)',
+                  'Tinggi Badan (cm)',
                   _tbCtrl,
                   type: TextInputType.number,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(22),
             decoration: BoxDecoration(
               color: _imtCategory == 'Normal'
-                  ? Colors.green.shade50
+                  ? const Color(0xFFECFDF5)
                   : (_imtCategory == '-'
-                        ? Colors.grey.shade50
-                        : Colors.orange.shade50),
-              borderRadius: BorderRadius.circular(16),
+                        ? const Color(0xFFF8FAFC)
+                        : const Color(0xFFFFFBEB)),
+              borderRadius: BorderRadius.circular(18),
               border: Border.all(
                 color: _imtCategory == 'Normal'
-                    ? Colors.green.shade300
+                    ? const Color(0xFFA7F3D0)
                     : (_imtCategory == '-'
-                          ? Colors.grey.shade300
-                          : Colors.orange.shade300),
+                          ? const Color(0xFFE2E8F0)
+                          : const Color(0xFFFDE68A)),
               ),
             ),
             child: Column(
               children: [
                 Icon(
-                  Icons.accessibility_new_rounded,
-                  size: 40,
+                  Icons.speed_rounded,
+                  size: 38,
                   color: _imtCategory == 'Normal'
-                      ? Colors.green
-                      : (_imtCategory == '-' ? Colors.grey : Colors.orange),
+                      ? const Color(0xFF059669)
+                      : (_imtCategory == '-'
+                            ? Colors.grey
+                            : const Color(0xFFD97706)),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 Text(
                   'Skor IMT: ${_imtValue > 0 ? _imtValue.toStringAsFixed(1) : '-'}',
                   style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 26,
+                    fontWeight: FontWeight.w900,
                     color: _textColor,
                   ),
                 ),
+                const SizedBox(height: 2),
                 Text(
-                  'Kategori: $_imtCategory',
+                  'Status: $_imtCategory',
                   style: TextStyle(
-                    fontSize: 18,
-                    color: const Color(0xFF388E3C),
-                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: _imtCategory == 'Normal'
+                        ? const Color(0xFF059669)
+                        : (_imtCategory == '-'
+                              ? Colors.grey
+                              : const Color(0xFFD97706)),
                   ),
                 ),
+                const SizedBox(height: 6),
                 Text(
                   _imtDesc,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.black54),
+                  style: const TextStyle(
+                    color: Color(0xFF64748B),
+                    fontSize: 12.5,
+                  ),
                 ),
               ],
             ),
@@ -495,47 +552,55 @@ class _AssessmentFormScreenState extends State<AssessmentFormScreen> {
     ],
   );
 
+  // 3. PART III (GCS)
   Widget _buildSlidePart3() {
     Widget gcsRadio(int val, int? grpVal, String desc, Function(int?) onChg) {
       bool isSel = val == grpVal;
-      return InkWell(
+      return GestureDetector(
         onTap: () {
           onChg(val);
           _calculateGCS();
         },
         child: Container(
           margin: const EdgeInsets.only(bottom: 8),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
-            color: isSel ? const Color(0xFFF3E5F5) : Colors.white,
+            color: isSel ? const Color(0xFFEDE9FE) : const Color(0xFFF8FAFC),
             border: Border.all(
-              color: isSel ? const Color(0xFF7B1FA2) : Colors.grey.shade300,
+              color: isSel ? const Color(0xFF7C3AED) : const Color(0xFFE2E8F0),
+              width: isSel ? 1.5 : 1,
             ),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
           ),
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                width: 28,
+                height: 28,
+                alignment: Alignment.center,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isSel ? const Color(0xFF7B1FA2) : Colors.grey.shade200,
+                  color: isSel
+                      ? const Color(0xFF7C3AED)
+                      : const Color(0xFFCBD5E1),
                 ),
                 child: Text(
                   '$val',
-                  style: TextStyle(
-                    color: isSel ? Colors.white : Colors.black87,
+                  style: const TextStyle(
+                    color: Colors.white,
                     fontWeight: FontWeight.bold,
+                    fontSize: 12,
                   ),
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   desc,
                   style: TextStyle(
-                    color: isSel ? const Color(0xFF7B1FA2) : Colors.black87,
-                    fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
+                    color: isSel ? const Color(0xFF7C3AED) : _textColor,
+                    fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
+                    fontSize: 13,
                   ),
                 ),
               ),
@@ -546,128 +611,164 @@ class _AssessmentFormScreenState extends State<AssessmentFormScreen> {
     }
 
     return ListView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
       children: [
         _buildCardWrap(
-          title: 'Mata (Eye)',
+          title: 'Respon Mata (Eye)',
           icon: Icons.remove_red_eye_outlined,
-          colorKey: const Color(0xFF7B1FA2),
+          colorKey: const Color(0xFF7C3AED),
           children: [
-            gcsRadio(4, _gcsEye, 'Spontan', (v) => setState(() => _gcsEye = v)),
-            gcsRadio(3, _gcsEye, 'Suara', (v) => setState(() => _gcsEye = v)),
-            gcsRadio(2, _gcsEye, 'Nyeri', (v) => setState(() => _gcsEye = v)),
+            gcsRadio(
+              4,
+              _gcsEye,
+              'Spontan membuka mata',
+              (v) => setState(() => _gcsEye = v),
+            ),
+            gcsRadio(
+              3,
+              _gcsEye,
+              'Merespon terhadap suara / perintah',
+              (v) => setState(() => _gcsEye = v),
+            ),
+            gcsRadio(
+              2,
+              _gcsEye,
+              'Merespon terhadap rangsangan nyeri',
+              (v) => setState(() => _gcsEye = v),
+            ),
             gcsRadio(
               1,
               _gcsEye,
-              'Tidak ada respon',
+              'Tidak ada respon sama sekali',
               (v) => setState(() => _gcsEye = v),
             ),
           ],
         ),
         _buildCardWrap(
-          title: 'Verbal',
+          title: 'Respon Verbal',
           icon: Icons.record_voice_over_outlined,
-          colorKey: const Color(0xFF7B1FA2),
+          colorKey: const Color(0xFF7C3AED),
           children: [
             gcsRadio(
               5,
               _gcsVerbal,
-              'Orientasi Baik',
+              'Orientasi baik dan lancar',
               (v) => setState(() => _gcsVerbal = v),
             ),
             gcsRadio(
               4,
               _gcsVerbal,
-              'Bingung',
+              'Bicara bingung / disorientasi',
               (v) => setState(() => _gcsVerbal = v),
             ),
             gcsRadio(
               3,
               _gcsVerbal,
-              'Kata tidak sesuai',
+              'Kata-kata tidak tepat / kacau',
               (v) => setState(() => _gcsVerbal = v),
             ),
             gcsRadio(
               2,
               _gcsVerbal,
-              'Suara tidak bermakna',
+              'Suara mengerang tanpa makna',
               (v) => setState(() => _gcsVerbal = v),
             ),
             gcsRadio(
               1,
               _gcsVerbal,
-              'Tidak ada respon',
+              'Tidak bersuara sama sekali',
               (v) => setState(() => _gcsVerbal = v),
             ),
           ],
         ),
         _buildCardWrap(
-          title: 'Motorik',
+          title: 'Respon Motorik',
           icon: Icons.accessibility_outlined,
-          colorKey: const Color(0xFF7B1FA2),
+          colorKey: const Color(0xFF7C3AED),
           children: [
             gcsRadio(
               6,
               _gcsMotorik,
-              'Mematuhi perintah',
+              'Mampu mematuhi perintah gerak',
               (v) => setState(() => _gcsMotorik = v),
             ),
             gcsRadio(
               5,
               _gcsMotorik,
-              'Melokalisir nyeri',
+              'Mampu melokalisir sumber nyeri',
               (v) => setState(() => _gcsMotorik = v),
             ),
             gcsRadio(
               4,
               _gcsMotorik,
-              'Menarik diri',
+              'Menghindar dari rangsangan nyeri',
               (v) => setState(() => _gcsMotorik = v),
             ),
             gcsRadio(
               3,
               _gcsMotorik,
-              'Fleksi',
+              'Fleksi abnormal (Dekortikasi)',
               (v) => setState(() => _gcsMotorik = v),
             ),
             gcsRadio(
               2,
               _gcsMotorik,
-              'Ekstensi',
+              'Ekstensi abnormal (Deserebrasi)',
               (v) => setState(() => _gcsMotorik = v),
             ),
             gcsRadio(
               1,
               _gcsMotorik,
-              'Tidak ada respon',
+              'Tidak ada respon gerakan',
               (v) => setState(() => _gcsMotorik = v),
             ),
           ],
         ),
         Container(
-          padding: const EdgeInsets.all(24),
-          margin: const EdgeInsets.only(bottom: 30),
+          padding: const EdgeInsets.all(20),
+          margin: const EdgeInsets.only(bottom: 24),
           decoration: BoxDecoration(
-            color: const Color(0xFF7B1FA2),
-            borderRadius: BorderRadius.circular(16),
+            gradient: const LinearGradient(
+              colors: [Color(0xFF7C3AED), Color(0xFF6D28D9)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF7C3AED).withValues(alpha: 0.3),
+                blurRadius: 15,
+                offset: const Offset(0, 6),
+              ),
+            ],
           ),
           child: Column(
             children: [
               const Text(
-                'INTERPRETASI GCS',
-                style: TextStyle(color: Colors.white, fontSize: 14),
+                'INTERPRETASI TINGKAT KESADARAN',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1,
+                ),
               ),
+              const SizedBox(height: 4),
               Text(
-                'Total: $_gcsTotal',
+                'Total Skor: $_gcsTotal',
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 28,
+                  fontWeight: FontWeight.w900,
                 ),
               ),
               Text(
-                'Kondisi: $_gcsCategory',
-                style: const TextStyle(color: Colors.white, fontSize: 18),
+                'Status: $_gcsCategory',
+                style: const TextStyle(
+                  color: Color(0xFFDDD6FE),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ],
           ),
@@ -676,54 +777,73 @@ class _AssessmentFormScreenState extends State<AssessmentFormScreen> {
     );
   }
 
+  // 4. PART IV
   Widget _buildSlidePart4() => ListView(
-    padding: const EdgeInsets.all(24),
+    padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
     children: [
       _buildCardWrap(
         title: 'Diagnosa Medis',
         icon: Icons.medical_services_outlined,
-        colorKey: const Color(0xFFF57C00),
+        colorKey: const Color(0xFFD97706),
         children: [
-          _buildTextField('Detail Diagnosa Medis', _diagMedisCtrl, minLines: 6),
+          _buildTextField(
+            'Rincian Diagnosa Medis Pasien',
+            _diagMedisCtrl,
+            minLines: 6,
+          ),
         ],
       ),
     ],
   );
+
+  // 5. PART V
   Widget _buildSlidePart5() => ListView(
-    padding: const EdgeInsets.all(24),
+    padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
     children: [
       _buildCardWrap(
-        title: 'Terapi Medis',
+        title: 'Terapi & Rekomendasi Medis',
         icon: Icons.medication_outlined,
-        colorKey: const Color(0xFFF57C00),
+        colorKey: const Color(0xFFEA580C),
         children: [
-          _buildTextField('Detail Terapi Medis', _terapiMedisCtrl, minLines: 6),
+          _buildTextField(
+            'Daftar Obat, Dosis, & Terapi Lanjutan',
+            _terapiMedisCtrl,
+            minLines: 6,
+          ),
         ],
       ),
     ],
   );
+
+  // 6. PART VI
   Widget _buildSlidePart6() => ListView(
-    padding: const EdgeInsets.all(24),
+    padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
     children: [
       _buildCardWrap(
-        title: 'Asuhan Keperawatan',
+        title: 'Rencana Asuhan Keperawatan',
         icon: Icons.assignment_turned_in_outlined,
-        colorKey: Colors.teal,
+        colorKey: const Color(0xFF0D9488),
         children: [
-          _buildTextField('Diagnosa Kep.', _diagKepCtrl, minLines: 2),
-          _buildTextField('Luaran Kep.', _luaranKepCtrl, minLines: 2),
-          _buildTextField('Intervensi', _intervensiKepCtrl, minLines: 4),
+          _buildTextField('Diagnosa Keperawatan', _diagKepCtrl, minLines: 2),
+          _buildTextField('Luaran Keperawatan', _luaranKepCtrl, minLines: 2),
+          _buildTextField(
+            'Intervensi Keperawatan',
+            _intervensiKepCtrl,
+            minLines: 4,
+          ),
         ],
       ),
     ],
   );
+
+  // 7. PART VII
   Widget _buildSlidePart7() => ListView(
-    padding: const EdgeInsets.all(24),
+    padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
     children: [
       _buildCardWrap(
-        title: 'Evaluasi (SOAP)',
+        title: 'Evaluasi Perkembangan (SOAP)',
         icon: Icons.fact_check_outlined,
-        colorKey: const Color(0xFF3F51B5),
+        colorKey: const Color(0xFF4F46E5),
         children: [
           _buildTextField('Subjektif (S)', _soapSCtrl, minLines: 2),
           _buildTextField('Objektif (O)', _soapOCtrl, minLines: 2),
@@ -733,55 +853,66 @@ class _AssessmentFormScreenState extends State<AssessmentFormScreen> {
       ),
       SizedBox(
         width: double.infinity,
-        height: 60,
+        height: 56,
         child: FilledButton.icon(
           onPressed: _isSaving ? null : _submitData,
-          icon: _isSaving ? const SizedBox.shrink() : const Icon(Icons.save),
+          icon: _isSaving
+              ? const SizedBox.shrink()
+              : const Icon(Icons.check_circle_outline_rounded),
           style: FilledButton.styleFrom(
-            backgroundColor: const Color(0xFF388E3C),
+            backgroundColor: const Color(0xFF0F766E),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
           ),
           label: _isSaving
-              ? const CircularProgressIndicator(color: Colors.white)
+              ? const SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2.5,
+                  ),
+                )
               : const Text(
-                  'Simpan Pemantauan',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  'Simpan Sesi Pemantauan',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                 ),
         ),
       ),
-      const SizedBox(height: 40),
     ],
   );
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F9FC),
-      appBar: AppBar(
-        title: const Text(
-          'Sesi Pemantauan Baru',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-      ),
+      backgroundColor: const Color(0xFFF8FAFC),
+      appBar: AppBar(title: const Text('Input Sesi Asesmen')),
       body: Column(
         children: [
-          // IDENTITAS PASIEN & NAMA DOKTER (READ-ONLY) DITAMPILKAN DI ATAS
+          // PATIENT MINI HEADER STRIP
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            decoration: BoxDecoration(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            decoration: const BoxDecoration(
               color: Colors.white,
-              border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+              border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
             ),
             child: Row(
               children: [
                 CircleAvatar(
-                  backgroundColor: Colors.teal.shade50,
-                  radius: 24,
-                  child: const Icon(Icons.person, color: Colors.teal),
+                  backgroundColor: const Color(0xFFCCFBF1),
+                  radius: 20,
+                  child: Text(
+                    widget.patient.nama.isNotEmpty
+                        ? widget.patient.nama[0].toUpperCase()
+                        : 'P',
+                    style: TextStyle(
+                      color: _primaryColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -789,57 +920,48 @@ class _AssessmentFormScreenState extends State<AssessmentFormScreen> {
                       Text(
                         widget.patient.nama.toUpperCase(),
                         style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
                           color: _textColor,
                         ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                       Text(
-                        'RM: ${widget.patient.idPasien} | ${widget.patient.jenisKelamin}',
+                        'RM: ${widget.patient.idPasien} • ${widget.patient.jenisKelamin}',
                         style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      // BADGE NAMA PEMANTAU / NAKES
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE8F5E9),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          'Pemantau: ${widget.doctorName}',
-                          style: const TextStyle(
-                            color: Color(0xFF388E3C),
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          fontSize: 11.5,
+                          color: Color(0xFF64748B),
                         ),
                       ),
                     ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    widget.doctorName,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: _primaryColor,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
 
+          // HORIZONTAL SLIDE TABS
           Container(
-            height: 56,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
+            height: 52,
+            color: Colors.white,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: _slideTitles.length,
@@ -849,28 +971,28 @@ class _AssessmentFormScreenState extends State<AssessmentFormScreen> {
                 return GestureDetector(
                   onTap: () => _pageController.animateToPage(
                     index,
-                    duration: const Duration(milliseconds: 300),
+                    duration: const Duration(milliseconds: 280),
                     curve: Curves.easeInOut,
                   ),
-                  child: Container(
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
                     margin: const EdgeInsets.only(right: 8),
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: isActive ? _primaryColor : Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: isActive ? _primaryColor : Colors.grey.shade300,
-                      ),
+                      color: isActive ? _primaryColor : const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(14),
                     ),
                     child: Text(
                       _slideTitles[index],
                       style: TextStyle(
-                        color: isActive ? Colors.white : Colors.grey.shade700,
+                        color: isActive
+                            ? Colors.white
+                            : const Color(0xFF64748B),
                         fontWeight: isActive
                             ? FontWeight.bold
-                            : FontWeight.w500,
-                        fontSize: 13,
+                            : FontWeight.w600,
+                        fontSize: 12.5,
                       ),
                     ),
                   ),
@@ -879,6 +1001,7 @@ class _AssessmentFormScreenState extends State<AssessmentFormScreen> {
             ),
           ),
 
+          // SLIDES VIEW
           Expanded(
             child: PageView(
               controller: _pageController,
@@ -897,16 +1020,10 @@ class _AssessmentFormScreenState extends State<AssessmentFormScreen> {
         ],
       ),
       bottomNavigationBar: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        decoration: BoxDecoration(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        decoration: const BoxDecoration(
           color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -5),
-            ),
-          ],
+          border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -914,19 +1031,19 @@ class _AssessmentFormScreenState extends State<AssessmentFormScreen> {
             if (_currentPage > 0)
               OutlinedButton.icon(
                 onPressed: () => _pageController.previousPage(
-                  duration: const Duration(milliseconds: 300),
+                  duration: const Duration(milliseconds: 250),
                   curve: Curves.ease,
                 ),
-                icon: const Icon(Icons.arrow_back),
-                label: const Text('Kembali'),
+                icon: const Icon(Icons.arrow_back_rounded, size: 18),
+                label: const Text('Sebelumnya'),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: _textColor,
-                  side: BorderSide(color: Colors.grey.shade300),
+                  side: const BorderSide(color: Color(0xFFE2E8F0)),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(14),
                   ),
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
+                    horizontal: 18,
                     vertical: 12,
                   ),
                 ),
@@ -936,18 +1053,18 @@ class _AssessmentFormScreenState extends State<AssessmentFormScreen> {
             if (_currentPage < 6)
               FilledButton.icon(
                 onPressed: () => _pageController.nextPage(
-                  duration: const Duration(milliseconds: 300),
+                  duration: const Duration(milliseconds: 250),
                   curve: Curves.ease,
                 ),
-                icon: const Icon(Icons.arrow_forward),
+                icon: const Icon(Icons.arrow_forward_rounded, size: 18),
                 label: const Text('Selanjutnya'),
                 style: FilledButton.styleFrom(
                   backgroundColor: _primaryColor,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(14),
                   ),
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
+                    horizontal: 20,
                     vertical: 12,
                   ),
                 ),

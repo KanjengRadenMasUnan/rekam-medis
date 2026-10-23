@@ -8,22 +8,33 @@ import 'patient_detail_screen.dart';
 import 'patient_form_screen.dart';
 
 class PatientListScreen extends StatefulWidget {
-  const PatientListScreen({super.key});
+  final String? initialKeyword;
+  final String doctorName;
+  const PatientListScreen({
+    super.key,
+    this.initialKeyword,
+    required this.doctorName,
+  });
 
   @override
   State<PatientListScreen> createState() => _PatientListScreenState();
 }
 
 class _PatientListScreenState extends State<PatientListScreen> {
-  final TextEditingController _searchController = TextEditingController();
+  late TextEditingController _searchController;
+  final Color _textColor = const Color(0xFF0F172A);
 
   @override
   void initState() {
     super.initState();
-
-    Future.microtask(() {
-      _refresh();
-    });
+    _searchController = TextEditingController(
+      text: widget.initialKeyword ?? '',
+    );
+    Future.microtask(
+      () => context.read<PatientProvider>().loadPatients(
+        keyword: _searchController.text.trim(),
+      ),
+    );
   }
 
   @override
@@ -32,129 +43,207 @@ class _PatientListScreenState extends State<PatientListScreen> {
     super.dispose();
   }
 
-  Future<void> _refresh() {
-    return context.read<PatientProvider>().loadPatients(
-      keyword: _searchController.text.trim(),
-    );
-  }
-
-  void _openPatientForm() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const PatientFormScreen(doctorName: ''),
-      ),
-    ).then((_) {
-      _refresh();
-    });
-  }
-
-  void _openPatientDetail(Patient patient) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => PatientDetailScreen(patient: patient, doctorName: ''),
-      ),
-    ).then((_) {
-      _refresh();
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('Data Pasien'),
+        title: const Text('Direktori Data Pasien'),
         actions: [
-          IconButton(onPressed: _refresh, icon: const Icon(Icons.refresh)),
+          IconButton(
+            tooltip: 'Tambah Pasien',
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) =>
+                    PatientFormScreen(doctorName: widget.doctorName),
+              ),
+            ).then((_) => context.read<PatientProvider>().loadPatients()),
+            icon: const Icon(
+              Icons.person_add_alt_1_rounded,
+              color: Color(0xFF0F766E),
+            ),
+          ),
+          const SizedBox(width: 8),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _openPatientForm,
-        icon: const Icon(Icons.person_add_alt_1),
-        label: const Text('Tambah Pasien'),
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      body: Column(
+        children: [
+          // SEARCH INPUT SURFACE
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
               child: TextField(
                 controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'Cari nama atau ID pasien',
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  isDense: true,
+                style: TextStyle(
+                  color: _textColor,
+                  fontWeight: FontWeight.w600,
                 ),
-                onChanged: (_) {
-                  _refresh();
-                },
-              ),
-            ),
-            Expanded(
-              child: Consumer<PatientProvider>(
-                builder: (context, provider, _) {
-                  if (provider.loading) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-
-                  if (provider.error != null) {
-                    return Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(24),
-                        child: Text(
-                          'Error: ${provider.error}',
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    );
-                  }
-
-                  if (provider.patients.isEmpty) {
-                    return const Center(
-                      child: Text(
-                        'Belum ada pasien.\nSilakan tambahkan data pasien baru.',
-                        textAlign: TextAlign.center,
-                      ),
-                    );
-                  }
-
-                  return RefreshIndicator(
-                    onRefresh: _refresh,
-                    child: ListView.separated(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 90),
-                      itemCount: provider.patients.length,
-                      separatorBuilder: (_, _) => const Divider(height: 1),
-                      itemBuilder: (context, index) {
-                        final patient = provider.patients[index];
-
-                        return ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          title: Text(
-                            patient.nama,
-                            style: const TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                          subtitle: Text(
-                            '${patient.idPasien}\n'
-                            'TTL: ${patient.tempatLahir}, '
-                            '${formatDate(patient.tanggalLahir, pattern: 'dd-MM-yyyy')}',
-                          ),
-                          isThreeLine: true,
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () => _openPatientDetail(patient),
-                        );
-                      },
-                    ),
+                decoration: InputDecoration(
+                  hintText: 'Cari nama, ID rekam medis, tempat lahir...',
+                  hintStyle: const TextStyle(
+                    color: Color(0xFF94A3B8),
+                    fontSize: 13.5,
+                  ),
+                  prefixIcon: const Icon(
+                    Icons.search_rounded,
+                    color: Color(0xFF0F766E),
+                  ),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear_rounded, size: 18),
+                          onPressed: () {
+                            _searchController.clear();
+                            context.read<PatientProvider>().loadPatients(
+                              keyword: '',
+                            );
+                            setState(() {});
+                          },
+                        )
+                      : null,
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                onChanged: (val) {
+                  setState(() {});
+                  context.read<PatientProvider>().loadPatients(
+                    keyword: val.trim(),
                   );
                 },
               ),
             ),
-          ],
-        ),
+          ),
+
+          // PATIENT LIST
+          Expanded(
+            child: Consumer<PatientProvider>(
+              builder: (context, provider, _) {
+                if (provider.loading) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: Color(0xFF0F766E)),
+                  );
+                }
+                if (provider.patients.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.search_off_rounded,
+                          size: 56,
+                          color: Colors.grey.shade300,
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Data pasien tidak ditemukan.',
+                          style: TextStyle(
+                            color: Color(0xFF64748B),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                return ListView.builder(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 8,
+                  ),
+                  itemCount: provider.patients.length,
+                  itemBuilder: (context, index) {
+                    final patient = provider.patients[index];
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: const Color(0xFFF1F5F9)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.02),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        leading: CircleAvatar(
+                          backgroundColor: const Color(0xFFCCFBF1),
+                          child: Text(
+                            patient.nama.isNotEmpty
+                                ? patient.nama[0].toUpperCase()
+                                : 'P',
+                            style: const TextStyle(
+                              color: Color(0xFF0F766E),
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                        title: Text(
+                          patient.nama,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14.5,
+                            color: _textColor,
+                          ),
+                        ),
+                        subtitle: Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(
+                            'RM: ${patient.idPasien}\nTTL: ${patient.tempatLahir}, ${formatDate(patient.tanggalLahir, pattern: 'dd-MM-yyyy')}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF64748B),
+                              height: 1.3,
+                            ),
+                          ),
+                        ),
+                        isThreeLine: true,
+                        trailing: const Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          size: 14,
+                          color: Color(0xFFCBD5E1),
+                        ),
+                        onTap: () =>
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => PatientDetailScreen(
+                                  patient: patient,
+                                  doctorName: widget.doctorName,
+                                ),
+                              ),
+                            ).then(
+                              (_) => provider.loadPatients(
+                                keyword: _searchController.text.trim(),
+                              ),
+                            ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

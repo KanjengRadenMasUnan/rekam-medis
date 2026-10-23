@@ -102,8 +102,9 @@ class _PatientFormScreenState extends State<PatientFormScreen> {
       _namaCtrl.text = widget.patient!.nama;
       _tempatLahirCtrl.text = widget.patient!.tempatLahir;
       _tanggalLahir = widget.patient!.tanggalLahir;
-      if (_tanggalLahir != null)
+      if (_tanggalLahir != null) {
         _tglLahirCtrl.text = formatDate(_tanggalLahir, pattern: 'dd-MM-yyyy');
+      }
       _jenisKelamin = widget.patient!.jenisKelamin;
     }
     _bbCtrl.addListener(_calculateIMT);
@@ -128,11 +129,12 @@ class _PatientFormScreenState extends State<PatientFormScreen> {
       firstDate: DateTime(1900),
       lastDate: now,
     );
-    if (picked != null)
+    if (picked != null) {
       setState(() {
         _tanggalLahir = picked;
         _tglLahirCtrl.text = formatDate(picked, pattern: 'dd-MM-yyyy');
       });
+    }
   }
 
   void _calculateIMT() {
@@ -176,9 +178,9 @@ class _PatientFormScreenState extends State<PatientFormScreen> {
     if (_gcsEye != null && _gcsVerbal != null && _gcsMotorik != null) {
       int total = _gcsEye! + _gcsVerbal! + _gcsMotorik!;
       String category = '';
-      if (total >= 14)
+      if (total >= 14) {
         category = 'Composmentis';
-      else if (total >= 12)
+      } else if (total >= 12)
         category = 'Apatis';
       else if (total >= 10)
         category = 'Delirium';
@@ -278,10 +280,11 @@ class _PatientFormScreenState extends State<PatientFormScreen> {
         ),
       );
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Gagal: $e')));
+      }
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
@@ -307,7 +310,7 @@ class _PatientFormScreenState extends State<PatientFormScreen> {
                 color: Colors.white,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
+                    color: Colors.black.withValues(alpha: 0.04),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -381,7 +384,7 @@ class _PatientFormScreenState extends State<PatientFormScreen> {
           color: Colors.white,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, -5),
             ),
